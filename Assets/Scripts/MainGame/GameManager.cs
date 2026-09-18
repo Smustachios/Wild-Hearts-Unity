@@ -16,7 +16,9 @@ public class GameManager : MonoBehaviour
     private float timerOne = 1f;
     private int freespinTracker = 0;
     private int freespinsLeft = 5;
-    decimal totalWin = 0;
+    private int scatters = 0;
+    private int bonusLevel = 1;
+    private decimal totalWin = 0;
 
 
 
@@ -77,17 +79,28 @@ public class GameManager : MonoBehaviour
 
             yield return GameLoop(spinData.Freespins[freespinTracker].Spins);
 
-            // Scatters! 
+            // Scatters!
+            scatters += spinData.Freespins[freespinTracker].Scatters.Lenght;
+            if (scatters >= 4 && bonusLevel < 4)
+            {
+                bonusLevel++;
+                freespinsLeft += 2;
+                scatters -= 4;
+                canvasController.SetFreespinsMessage("2 extra spins won!");
+            }
 
             freespinTracker++;
 
             if (freespinTracker == spinData.Freespins.Count)
             {
                 playingBonus = false;
-                freespinTracker = 0;
                 canvasController.SetFreespinsLeft("");
                 canvasController.SetFreespinsMessage($"{spinData.Freespins.Count} freespins won {totalWin}!!");
                 totalWin = 0;
+                scatters = 0;
+                freespinTracker = 0;
+                freespinsLeft = 0;
+                bonusLevel = 1;
                 canvasController.SetTotalWin("");
             }
 
@@ -96,37 +109,37 @@ public class GameManager : MonoBehaviour
 
     IEnumerator GameLoop(List<FullSpin> spins)
     {
-        foreach (FullSpin sp in spins)
+        foreach (FullSpin spin in spins)
         {
-            if (sp.wins.Count <= 0)
+            if (spin.wins.Count <= 0)
             {
                 break;
             }
 
-            totalWin += sp.totalWin;
+            totalWin += spin.totalWin;
             yield return new WaitForSeconds(timerOne);
 
-            boardController.ShowWins(sp.wins);
-            canvasController.SetSpinWin($"{decimal.Round(sp.totalWin, 2)}");
+            boardController.ShowWins(spin.wins);
+            canvasController.SetSpinWin($"{decimal.Round(spin.totalWin, 2)}");
             canvasController.SetTotalWin($"{decimal.Round(totalWin, 2)}");
             yield return new WaitForSeconds(timerOne);
             canvasController.SetSpinWin("");
 
-            boardController.ClearWins(sp.wins);
+            boardController.ClearWins(spin.wins);
             yield return new WaitForSeconds(timerOne);
 
-            boardController.MoveSymbols(sp.movedSymbols);
+            boardController.MoveSymbols(spin.movedSymbols);
             yield return new WaitForSeconds(timerOne);
 
-            if (sp.wild.SymbolType != Symbols.Empty)
+            if (spin.wild.SymbolType != Symbols.Empty)
             {
-                boardController.MakeWild(sp.wild);
+                boardController.MakeWild(spin.wild);
                 yield return new WaitForSeconds(timerOne);
             }
 
-            if (sp.newSymbols.Count > 0)
+            if (spin.newSymbols.Count > 0)
             {
-                boardController.ReSpin(sp.newSymbols);
+                boardController.ReSpin(spin.newSymbols);
             }
         }
 
@@ -139,6 +152,8 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ShowBonus(SpinData spins)
     {
+        // Debug
+        Debug.Log($"TOTAL FREESPINS: {spins.Freespins.Count}");
         totalWin += spins.ScatterWin;
 
         yield return new WaitForSeconds(timerOne);
@@ -151,5 +166,11 @@ public class GameManager : MonoBehaviour
         bankrollManager.Bankroll += totalWin;
         canvasController.SetBankroll($"{decimal.Round(bankrollManager.Bankroll, 2)}");
         canvasController.SetFreespinsMessage("5 freespins won!!");
+        freespinsLeft = 5;
+    }
+
+    private void CheckScatters()
+    {
+
     }
 }

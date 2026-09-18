@@ -143,24 +143,23 @@ public class Simulator
 
         while(spinsLeft > 0)
         {
-            List<FullSpin> spins = SingleFreespin(bonusHearts, bonusMultiplier, out WinningCombo scatters);
+            List<FullSpin> spin = SingleFreespin(bonusHearts, bonusMultiplier, out WinningCombo scatters);
 
-            Freespin freespin = new Freespin(spins, scatters);
+            Freespin freespin = new Freespin(spin, scatters);
 
+            Debug.Log($"SCATTERS ON FREESPIN {freespins.Count} = {scatters.Lenght}; LEVEL {level}; COLLECTED SCATTERS {collectedScatters}");
 
             if (scatters.Lenght >= 1 && level < 4)
             {
-                Debug.Log($"{scatters.Type}, {scatters.Lenght}, BONUS SYMBOLS");
-
                 collectedScatters += scatters.Lenght;
 
-                if (collectedScatters == 4)
+                if (collectedScatters >= 4)
                 {
                     spinsLeft += 2;
                     bonusHearts++;
                     bonusMultiplier++;
                     level++;
-                    collectedScatters = 0;
+                    collectedScatters -= 4;
                 }
             }
 

@@ -3,7 +3,7 @@
 public class Freespin
 {
     public List<FullSpin> Spins = new List<FullSpin>();
-    public WinningCombo Scatters = new WinningCombo(8, 0, 0);
+    public WinningCombo Scatters;
 
 
     public Freespin()
