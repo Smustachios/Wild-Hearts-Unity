@@ -62,6 +62,9 @@ public class GameManager : MonoBehaviour
             }
             else
             {
+
+                bankrollManager.Bankroll += totalWin;
+                canvasController.SetBankroll($"{decimal.Round(bankrollManager.Bankroll, 2)}");
                 totalWin = 0;
                 canvasController.SetTotalWin("");
             }
@@ -94,14 +97,19 @@ public class GameManager : MonoBehaviour
             if (freespinTracker == spinData.Freespins.Count)
             {
                 playingBonus = false;
+
                 canvasController.SetFreespinsLeft("");
                 canvasController.SetFreespinsMessage($"{spinData.Freespins.Count} freespins won {totalWin}!!");
+
+                bankrollManager.Bankroll += totalWin;
+                canvasController.SetBankroll($"{decimal.Round(bankrollManager.Bankroll, 2)}");
                 totalWin = 0;
+                canvasController.SetTotalWin("");
+
                 scatters = 0;
                 freespinTracker = 0;
                 freespinsLeft = 0;
                 bonusLevel = 1;
-                canvasController.SetTotalWin("");
             }
 
         }
@@ -142,9 +150,6 @@ public class GameManager : MonoBehaviour
                 boardController.ReSpin(spin.newSymbols);
             }
         }
-
-        bankrollManager.Bankroll += totalWin;
-        canvasController.SetBankroll($"{decimal.Round(bankrollManager.Bankroll, 2)}");
         boardController.Wilds.Clear();
 
         isSpinning = false;
@@ -152,8 +157,6 @@ public class GameManager : MonoBehaviour
 
     IEnumerator ShowBonus(SpinData spins)
     {
-        // Debug
-        Debug.Log($"TOTAL FREESPINS: {spins.Freespins.Count}");
         totalWin += spins.ScatterWin;
 
         yield return new WaitForSeconds(timerOne);
@@ -163,8 +166,6 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(timerOne);
         canvasController.SetSpinWin("");
-        bankrollManager.Bankroll += totalWin;
-        canvasController.SetBankroll($"{decimal.Round(bankrollManager.Bankroll, 2)}");
         canvasController.SetFreespinsMessage("5 freespins won!!");
         freespinsLeft = 5;
     }
