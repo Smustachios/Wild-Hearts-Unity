@@ -42,7 +42,9 @@ public class Simulator
 
             fullSpin.movedSymbols = cleaner.MoveSymbols(board);
 
-            Symbol wild = spinner.MakeWild(board, false, out bool wildHit);
+            Symbol wild = spinner.MakeWild(board, out bool wildHit);
+            Debug.Log($"GOT WILD WITH {wild.Hearts} HEARTS, AND WILDHIT IS {wildHit}");
+
             if (wildHit)
             {
                 fullSpin.wild = wild;
@@ -100,7 +102,8 @@ public class Simulator
 
             fullSpin.movedSymbols = cleaner.MoveSymbols(board);
 
-            Symbol wild = spinner.MakeWild(board, false, out bool wildHit);
+            Symbol wild = spinner.MakeWild(board, out bool wildHit);
+
             if (wildHit)
             {
                 wild.Hearts += bonusHearts;
@@ -146,8 +149,6 @@ public class Simulator
             List<FullSpin> spin = SingleFreespin(bonusHearts, bonusMultiplier, out WinningCombo scatters);
 
             Freespin freespin = new Freespin(spin, scatters);
-
-            Debug.Log($"SCATTERS ON FREESPIN {freespins.Count} = {scatters.Lenght}; LEVEL {level}; COLLECTED SCATTERS {collectedScatters}");
 
             if (scatters.Lenght >= 1 && level < 4)
             {

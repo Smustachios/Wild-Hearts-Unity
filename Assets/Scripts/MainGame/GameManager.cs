@@ -1,3 +1,4 @@
+using NUnit.Framework.Interfaces;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -16,7 +17,8 @@ public class GameManager : MonoBehaviour
     private float timerOne = 1f;
     private int freespinTracker = 0;
     private int freespinsLeft = 5;
-    private int scatters = 0;
+    private int levelScatters = 0;
+    private int totalScatters = 0;
     private int bonusLevel = 1;
     private decimal totalWin = 0;
 
@@ -72,7 +74,7 @@ public class GameManager : MonoBehaviour
         else if (!isSpinning && playingBonus)
         {
             canvasController.SetFreespinsMessage("");
-            canvasController.SetFreespinsLeft($"{freespinsLeft - freespinTracker} freespins left!");
+            canvasController.SetFreespinsLeft($"{freespinsLeft - freespinTracker - 1} freespins left!");
 
             isSpinning = true;
 
@@ -83,12 +85,21 @@ public class GameManager : MonoBehaviour
             yield return GameLoop(spinData.Freespins[freespinTracker].Spins);
 
             // Scatters!
-            scatters += spinData.Freespins[freespinTracker].Scatters.Lenght;
-            if (scatters >= 4 && bonusLevel < 4)
+            int newScatters = spinData.Freespins[freespinTracker].Scatters.Lenght;
+
+            levelScatters += newScatters;
+
+            if (newScatters > 0 && bonusLevel < 4)
+            {
+                yield return boardController.ActivateScatters(totalScatters, newScatters);
+                totalScatters += newScatters;
+            }
+
+            if (levelScatters >= 4 && bonusLevel < 4)
             {
                 bonusLevel++;
                 freespinsLeft += 2;
-                scatters -= 4;
+                levelScatters -= 4;
                 canvasController.SetFreespinsMessage("2 extra spins won!");
             }
 
@@ -106,10 +117,13 @@ public class GameManager : MonoBehaviour
                 totalWin = 0;
                 canvasController.SetTotalWin("");
 
-                scatters = 0;
+                levelScatters = 0;
                 freespinTracker = 0;
                 freespinsLeft = 0;
                 bonusLevel = 1;
+
+                boardController.DeactivateScatters();
+                totalScatters = 0;
             }
 
         }
@@ -134,6 +148,7 @@ public class GameManager : MonoBehaviour
             canvasController.SetSpinWin("");
 
             boardController.ClearWins(spin.wins);
+            boardController.ClearWilds();
             yield return new WaitForSeconds(timerOne);
 
             boardController.MoveSymbols(spin.movedSymbols);
@@ -141,6 +156,7 @@ public class GameManager : MonoBehaviour
 
             if (spin.wild.SymbolType != Symbols.Empty)
             {
+                Debug.Log($"WILD HAS {spin.wild.Hearts} HEARTS IN GAMEMANAGER BEFORE MAKING");
                 boardController.MakeWild(spin.wild);
                 yield return new WaitForSeconds(timerOne);
             }

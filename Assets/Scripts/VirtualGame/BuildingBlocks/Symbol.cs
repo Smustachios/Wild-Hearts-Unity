@@ -19,11 +19,12 @@ public class Symbol
     }
 
     // For wilds
-    public Symbol(Symbols type, int multplier, int hearts)
+    public Symbol(Symbols type, int multplier, int hearts, Vector2 coordinates)
     {
         SymbolType = type;
         Multiplier = multplier;
         Hearts = hearts;
+        Coordinates = coordinates;
     }
 
     public void LoseLife()

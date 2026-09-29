@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Numerics;
+using UnityEngine;
+using Debug = UnityEngine.Debug;
 using Random = System.Random;
+using Vector2 = System.Numerics.Vector2;
 
 public class Spinner
 {
@@ -10,8 +14,8 @@ public class Spinner
     private float extraWildP = 0.25f;
     private float extraHeartP = 0.25f;
     private float extraMultiplierP = 0.15f;
-    private float bonusSymbolP = 0.4f;
-    private float symbolBonusP = 0.14f;
+    private float bonusSymbolP = 0.1f;
+    private float symbolBonusP = 0.05f;
 
     // First spin of the game
     public void InitialSpin(Board board, List<Reel> reels)
@@ -108,11 +112,11 @@ public class Spinner
     }
 
 
-    public Symbol MakeWild(Board board, bool bonus, out bool wildHit)
+    public Symbol MakeWild(Board board, out bool wildHit)
     {
         List<Vector2> emptySymbols = new List<Vector2>();
         bool hasWild = false;
-        Symbol wild = new Symbol();
+        Symbol wild;
 
         // Check all the avaible spots to put wilds first and then make wild
 
@@ -154,36 +158,40 @@ public class Spinner
         // 100% give wild if no wild on the board
         if (!hasWild)
         {
+            Debug.Log("DONT HAVE WILD");
+
             Vector2 newWild = emptySymbols[rng.Next(0, emptySymbols.Count)];
 
-            int hearts = MakeHearts(bonus);
-            int multiplier = MakeMultiplier(bonus);
+            int hearts = MakeHearts();
+            int multiplier = MakeMultiplier();
 
-            wild = new Symbol(Symbols.Wild, multiplier, hearts);
-            wild.Coordinates = new Vector2(newWild.X, newWild.Y);
+            board.BoardGrid[(int)newWild.X, (int)newWild.Y] = new Symbol(Symbols.Wild, multiplier, hearts, new Vector2(newWild.X, newWild.Y));
+            wild = board.BoardGrid[(int)newWild.X, (int)newWild.Y];
             wildHit = true;
-
-            board.BoardGrid[(int)newWild.X, (int)newWild.Y] = new Symbol(Symbols.Wild, multiplier, hearts);
+            Debug.Log($"WILD HAS {hearts} HEARTS");
         }
         // Only small chance to get new wild if already has a wild on the board
         else
         {
+            Debug.Log("HAVE WILD");
+
             if (rng.NextDouble() < extraWildP)
             {
                 Vector2 newWild = emptySymbols[rng.Next(0, emptySymbols.Count)];
 
-                int hearts = MakeHearts(bonus);
-                int multiplier = MakeMultiplier(bonus);
+                int hearts = MakeHearts();
+                int multiplier = MakeMultiplier();
 
-                wild = new Symbol(Symbols.Wild, multiplier, hearts);
-                wild.Coordinates = new Vector2(newWild.X, newWild.Y);
+                board.BoardGrid[(int)newWild.X, (int)newWild.Y] = new Symbol(Symbols.Wild, multiplier, hearts, new Vector2(newWild.X, newWild.Y));
+                wild = board.BoardGrid[(int)newWild.X, (int)newWild.Y];
                 wildHit = true;
+                Debug.Log($"WILD HAS {hearts} HEARTS (HAVE WILD)");
 
-                board.BoardGrid[(int)newWild.X, (int)newWild.Y] = new Symbol(Symbols.Wild, multiplier, hearts);
             }
             else
             {
                 wildHit = false;
+                wild = new Symbol(Symbols.Empty);
             }
         }
 
@@ -191,12 +199,11 @@ public class Spinner
     }
 
 
-    private int MakeHearts(bool bonus)
+    private int MakeHearts()
     {
         int hearts = 1;
-        int amount = bonus ? 4 : 2;
 
-        for (int i = 0; i < amount; i++)
+        for (int i = 0; i < 2; i++)
         {
             if (rng.NextDouble() < extraHeartP)
             {
@@ -207,12 +214,11 @@ public class Spinner
         return hearts;
     }
 
-    private int MakeMultiplier(bool bonus)
+    private int MakeMultiplier()
     {
         int multiplier = 1;
-        int amount = bonus ? 4 : 2;
 
-        for (int i = 0; i < amount; i++)
+        for (int i = 0; i < 2; i++)
         {
             if (rng.NextDouble() < extraMultiplierP)
             {

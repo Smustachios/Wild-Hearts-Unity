@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using System.Collections.Generic;
+using System.Collections;
 
 public class BoardController : MonoBehaviour
 {
@@ -9,6 +10,9 @@ public class BoardController : MonoBehaviour
 
     [SerializeField]
     private GameObject ClubPrefab, DiamondPrefab, HeartPrefab, SpadePrefab, S1Prefab, S2Prefab, S3Prefab, S4Prefab, BonusPrefab, WildPrefab;
+
+    [SerializeField]
+    private GameObject[] Scatters;
 
     public List<GameObject> Wilds = new List<GameObject>();
 
@@ -58,8 +62,6 @@ public class BoardController : MonoBehaviour
 
     public void ClearWins(List<WinningCombo> wins)
     {
-        List<GameObject> wildsToRemove = new List<GameObject>();
-
         foreach (WinningCombo w in wins)
         {
             foreach (System.Numerics.Vector2 coord in w.Coordinates)
@@ -74,6 +76,11 @@ public class BoardController : MonoBehaviour
                 }
             }
         }
+    }
+
+    public void ClearWilds()
+    {
+        List<GameObject> wildsToRemove = new List<GameObject>();
 
         foreach (GameObject wild in Wilds)
         {
@@ -81,7 +88,7 @@ public class BoardController : MonoBehaviour
 
             SpriteRenderer[] hearts = wildScript.GetComponentsInChildren<SpriteRenderer>();
 
-            for (int i = 3; i >= 1; i--)
+            for (int i = 6; i >= 1; i--)
             {
                 if (hearts[i].enabled)
                 {
@@ -90,7 +97,7 @@ public class BoardController : MonoBehaviour
                 }
             }
 
-            if (wildScript.Hearts == 1)
+            if (wildScript.Hearts <= 1)
             {
                 wildsToRemove.Add(wild);
             }
@@ -103,20 +110,9 @@ public class BoardController : MonoBehaviour
         foreach (GameObject wild in wildsToRemove)
         {
             Wilds.Remove(wild);
-            Destroy(wild);
             GameSymbol wildScript = wild.GetComponent<GameSymbol>();
             symbols[(int)wildScript.Coordinates.x, (int)wildScript.Coordinates.y] = null;
-        }
-    }
-
-    public void ClearScatters(WinningCombo scatters)
-    {
-        foreach (System.Numerics.Vector2 coord in scatters.Coordinates)
-        {
-            GameObject symbolToClear = symbols[(int)coord.X, (int)coord.Y];
-            symbols[(int)coord.X, (int)coord.Y] = null;
-
-            Destroy(symbolToClear);
+            Destroy(wild);
         }
     }
 
@@ -142,6 +138,7 @@ public class BoardController : MonoBehaviour
 
     public void MakeWild(Symbol wild)
     {
+        Debug.Log($"MAKING WILD");
         GameObject wildPrefab = Instantiate(WildPrefab, new Vector2(GetRowCoord(wild.Coordinates.X), GetColumnCoord(wild.Coordinates.Y)), WildPrefab.transform.rotation, Rows[(int)wild.Coordinates.X].transform);
         Transform[] hearts = wildPrefab.GetComponentsInChildren<Transform>();
         symbols[(int)wild.Coordinates.X, (int)wild.Coordinates.Y] = wildPrefab;
@@ -175,6 +172,29 @@ public class BoardController : MonoBehaviour
                 Destroy(symbols[i, j]);
                 symbols[i, j] = null; 
             }
+        }
+    }
+
+    public IEnumerator ActivateScatters(int place, int amount)
+    {
+        for (int i = place; i < place + amount; i++)
+        {
+            if (place + amount > 12)
+            {
+                break;
+            }
+
+            Scatters[i].SetActive(true);
+
+            yield return new WaitForSeconds(0.5f);
+        }
+    }
+
+    public void DeactivateScatters()
+    {
+        foreach (var scatter in Scatters)
+        {
+            scatter.SetActive(false);
         }
     }
 
